@@ -124,7 +124,7 @@ values depend on host hardware, disk speed, and container runtime.)*
 <id>,<name>,<address>,<continent>
 ```
 
-- **id**: monotonically increasing integer (shuffled order across partitions)
+- **id**: randomly generated 32-bit signed integer (spanning positive and negative range)
 - **name**: randomly generated string
 - **address**: randomly generated string
 - **continent**: one of `Africa`, `Asia`, `Australia`, `Europe`, `North America`, `South America`
