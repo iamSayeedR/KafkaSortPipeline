@@ -43,18 +43,12 @@ public class RunWriter {
      * @param tempDir         directory to write run files into
      */
     public RunWriter(Comparator<Record> comparator, long bufferSizeBytes, Path tempDir) {
-        if (comparator == null) {
-            throw new IllegalArgumentException("comparator must not be null");
-        }
+        this.comparator = java.util.Objects.requireNonNull(comparator, "comparator must not be null");
         if (bufferSizeBytes <= 0) {
             throw new IllegalArgumentException("bufferSizeBytes must be positive");
         }
-        if (tempDir == null) {
-            throw new IllegalArgumentException("tempDir must not be null");
-        }
-        this.comparator = comparator;
+        this.tempDir = java.util.Objects.requireNonNull(tempDir, "tempDir must not be null");
         this.bufferSizeBytes = bufferSizeBytes;
-        this.tempDir = tempDir;
     }
 
     /**
@@ -65,13 +59,13 @@ public class RunWriter {
      * @param record the record to add
      */
     public void add(Record record) {
-        if (record == null) {
-            throw new IllegalArgumentException("record must not be null");
-        }
+        java.util.Objects.requireNonNull(record, "record must not be null");
         buffer.add(record);
         currentBufferBytes += record.estimatedSizeBytes();
         if (currentBufferBytes >= bufferSizeBytes) {
-            spillRun();
+            spillRun(buffer);
+            buffer.clear();
+            currentBufferBytes = 0;
         }
     }
 
@@ -91,32 +85,15 @@ public class RunWriter {
             // If no runs have been spilled yet and there are enough records, force two runs
             if (runFiles.isEmpty() && buffer.size() > 1000) {
                 int mid = buffer.size() / 2;
-
-                // First half
                 List<Record> firstHalf = new ArrayList<>(buffer.subList(0, mid));
-                buffer.subList(0, mid).clear();
-                long savedBytes = currentBufferBytes;
-
-                // Temporarily swap buffer content to spill first half
-                List<Record> secondHalf = new ArrayList<>(buffer);
-                buffer.clear();
-                buffer.addAll(firstHalf);
-                currentBufferBytes = 0;
-                for (Record r : buffer) {
-                    currentBufferBytes += r.estimatedSizeBytes();
-                }
-                spillRun();
-
-                // Now spill second half
-                buffer.addAll(secondHalf);
-                currentBufferBytes = 0;
-                for (Record r : buffer) {
-                    currentBufferBytes += r.estimatedSizeBytes();
-                }
-                spillRun();
+                List<Record> secondHalf = new ArrayList<>(buffer.subList(mid, buffer.size()));
+                spillRun(firstHalf);
+                spillRun(secondHalf);
             } else {
-                spillRun();
+                spillRun(buffer);
             }
+            buffer.clear();
+            currentBufferBytes = 0;
         }
         return List.copyOf(runFiles);
     }
@@ -125,12 +102,12 @@ public class RunWriter {
      * Sorts the current buffer using {@link Arrays#parallelSort} and writes it
      * to a run file as newline-delimited CSV.
      */
-    private void spillRun() {
-        if (buffer.isEmpty()) {
+    private void spillRun(List<Record> runBuffer) {
+        if (runBuffer.isEmpty()) {
             return;
         }
 
-        Record[] arr = buffer.toArray(new Record[0]);
+        Record[] arr = runBuffer.toArray(new Record[0]);
         Arrays.parallelSort(arr, comparator);
 
         Path runFile = tempDir.resolve(String.format("run_%04d.csv", runCount));
@@ -150,7 +127,5 @@ public class RunWriter {
 
         runFiles.add(runFile);
         runCount++;
-        buffer.clear();
-        currentBufferBytes = 0;
     }
 }

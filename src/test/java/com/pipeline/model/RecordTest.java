@@ -99,19 +99,19 @@ class RecordTest {
 
     @Test
     void constructor_nullName_throws() {
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(NullPointerException.class,
                 () -> new Record(1, null, "addr", "Europe"));
     }
 
     @Test
     void constructor_nullAddress_throws() {
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(NullPointerException.class,
                 () -> new Record(1, "name", null, "Europe"));
     }
 
     @Test
     void constructor_nullContinent_throws() {
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(NullPointerException.class,
                 () -> new Record(1, "name", "addr", null));
     }
 

@@ -68,13 +68,10 @@ public class VerifyApp {
         }
 
         boolean countPass = counts.values().stream().distinct().count() == 1;
-        StringBuilder countMsg = new StringBuilder("COUNT CHECK:");
-        for (var entry : counts.entrySet()) {
-            countMsg.append(" ").append(entry.getKey()).append("=").append(entry.getValue()).append(",");
-        }
-        countMsg.setLength(countMsg.length() - 1); // remove trailing comma
-        countMsg.append(" — ").append(countPass ? "PASS" : "FAIL");
-        System.out.println(countMsg);
+        String countDetails = counts.entrySet().stream()
+                .map(e -> e.getKey() + "=" + e.getValue())
+                .collect(java.util.stream.Collectors.joining(", "));
+        System.out.println("COUNT CHECK: " + countDetails + " — " + (countPass ? "PASS" : "FAIL"));
         if (!countPass) allPassed = false;
 
         // ── Check 2: Sortedness ─────────────────────────────────────────
@@ -94,13 +91,10 @@ public class VerifyApp {
                 integrityPass = false;
             }
         }
-        StringBuilder intMsg = new StringBuilder("INTEGRITY CHECK:");
-        for (var entry : checksums.entrySet()) {
-            intMsg.append(" ").append(entry.getKey()).append("=").append(entry.getValue()).append(",");
-        }
-        intMsg.setLength(intMsg.length() - 1);
-        intMsg.append(" — ").append(integrityPass ? "PASS" : "FAIL");
-        System.out.println(intMsg);
+        String integrityDetails = checksums.entrySet().stream()
+                .map(e -> e.getKey() + "=" + e.getValue())
+                .collect(java.util.stream.Collectors.joining(", "));
+        System.out.println("INTEGRITY CHECK: " + integrityDetails + " — " + (integrityPass ? "PASS" : "FAIL"));
         if (!integrityPass) allPassed = false;
 
         // ── Summary ─────────────────────────────────────────────────────

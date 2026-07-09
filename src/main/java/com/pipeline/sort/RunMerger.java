@@ -44,18 +44,12 @@ public class RunMerger {
      * @param tempDir    directory for intermediate merge files
      */
     public RunMerger(Comparator<Record> comparator, int maxFanIn, Path tempDir) {
-        if (comparator == null) {
-            throw new IllegalArgumentException("comparator must not be null");
-        }
+        this.comparator = java.util.Objects.requireNonNull(comparator, "comparator must not be null");
         if (maxFanIn < 2) {
             throw new IllegalArgumentException("maxFanIn must be at least 2");
         }
-        if (tempDir == null) {
-            throw new IllegalArgumentException("tempDir must not be null");
-        }
-        this.comparator = comparator;
+        this.tempDir = java.util.Objects.requireNonNull(tempDir, "tempDir must not be null");
         this.maxFanIn = maxFanIn;
-        this.tempDir = tempDir;
     }
 
     /**
@@ -108,42 +102,8 @@ public class RunMerger {
             return;
         }
 
-        BufferedReader[] readers = new BufferedReader[inputs.size()];
-        try {
-            // Open all readers
-            for (int i = 0; i < inputs.size(); i++) {
-                readers[i] = new BufferedReader(
-                        new FileReader(inputs.get(i).toFile(), StandardCharsets.UTF_8),
-                        READ_BUFFER_SIZE
-                );
-            }
-
-            PriorityQueue<IndexedRecord> heap = new PriorityQueue<>(
-                    (a, b) -> comparator.compare(a.record, b.record)
-            );
-
-            // Seed the heap with the first record from each file
-            for (int i = 0; i < readers.length; i++) {
-                String line = readers[i].readLine();
-                if (line != null && !line.isEmpty()) {
-                    heap.offer(new IndexedRecord(Record.fromCSV(line), i));
-                }
-            }
-
-            // Main merge loop
-            while (!heap.isEmpty()) {
-                IndexedRecord min = heap.poll();
-                output.accept(min.record);
-
-                String nextLine = readers[min.sourceIndex].readLine();
-                if (nextLine != null && !nextLine.isEmpty()) {
-                    heap.offer(new IndexedRecord(Record.fromCSV(nextLine), min.sourceIndex));
-                }
-            }
-        } catch (IOException e) {
-            throw new UncheckedIOException("Error during k-way merge", e);
-        } finally {
-            // Close all readers
+        List<BufferedReader> readers = new ArrayList<>(inputs.size());
+        try (AutoCloseable closeAll = () -> {
             for (BufferedReader reader : readers) {
                 if (reader != null) {
                     try {
@@ -153,6 +113,40 @@ public class RunMerger {
                     }
                 }
             }
+        }) {
+            // Open all readers
+            for (Path input : inputs) {
+                readers.add(new BufferedReader(
+                        new FileReader(input.toFile(), StandardCharsets.UTF_8),
+                        READ_BUFFER_SIZE
+                ));
+            }
+
+            PriorityQueue<IndexedRecord> heap = new PriorityQueue<>(
+                    (a, b) -> comparator.compare(a.record(), b.record())
+            );
+
+            // Seed the heap with the first record from each file
+            for (int i = 0; i < readers.size(); i++) {
+                String line = readers.get(i).readLine();
+                if (line != null && !line.isEmpty()) {
+                    heap.offer(new IndexedRecord(Record.fromCSV(line), i));
+                }
+            }
+
+            // Main merge loop
+            while (!heap.isEmpty()) {
+                IndexedRecord min = heap.poll();
+                output.accept(min.record());
+
+                String nextLine = readers.get(min.sourceIndex()).readLine();
+                if (nextLine != null && !nextLine.isEmpty()) {
+                    heap.offer(new IndexedRecord(Record.fromCSV(nextLine), min.sourceIndex()));
+                }
+            }
+        } catch (Exception e) {
+            if (e instanceof RuntimeException re) throw re;
+            throw new UncheckedIOException("Error during k-way merge", (IOException) e);
         }
     }
 
@@ -201,13 +195,5 @@ public class RunMerger {
      * Holds a record together with the index of the source file it came from,
      * enabling the priority queue to refill from the correct reader.
      */
-    private static class IndexedRecord {
-        final Record record;
-        final int sourceIndex;
-
-        IndexedRecord(Record record, int sourceIndex) {
-            this.record = record;
-            this.sourceIndex = sourceIndex;
-        }
-    }
+    private record IndexedRecord(Record record, int sourceIndex) {}
 }

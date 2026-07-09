@@ -10,9 +10,9 @@ public record Record(int id, String name, String address, String continent) {
      * Compact constructor — validates that no field is null.
      */
     public Record {
-        if (name == null) throw new IllegalArgumentException("name must not be null");
-        if (address == null) throw new IllegalArgumentException("address must not be null");
-        if (continent == null) throw new IllegalArgumentException("continent must not be null");
+        java.util.Objects.requireNonNull(name, "name must not be null");
+        java.util.Objects.requireNonNull(address, "address must not be null");
+        java.util.Objects.requireNonNull(continent, "continent must not be null");
     }
 
     /**
@@ -80,8 +80,11 @@ public record Record(int id, String name, String address, String continent) {
      * so it can verify that sorting preserved all records without mutation.
      */
     public long hash64() {
-        String csv = toCSV();
-        return (long) csv.hashCode() * 31L + csv.length();
+        long h = id;
+        h = h * 31L + name.hashCode();
+        h = h * 31L + address.hashCode();
+        h = h * 31L + continent.hashCode();
+        return h;
     }
 
     // ── helpers ──────────────────────────────────────────────────────────

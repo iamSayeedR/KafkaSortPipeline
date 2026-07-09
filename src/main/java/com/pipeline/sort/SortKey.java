@@ -47,13 +47,12 @@ public enum SortKey {
         if (s == null || s.isBlank()) {
             throw new IllegalArgumentException("Sort key must not be null or blank");
         }
-        String upper = s.strip().toUpperCase();
-        // Try direct enum lookup first
-        try {
-            return SortKey.valueOf(upper);
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException(
-                    "Unknown sort key '" + s + "'. Valid values: ID, NAME, CONTINENT", e);
-        }
+        return switch (s.strip().toUpperCase()) {
+            case "ID" -> ID;
+            case "NAME" -> NAME;
+            case "CONTINENT" -> CONTINENT;
+            default -> throw new IllegalArgumentException(
+                    "Unknown sort key '" + s + "'. Valid values: ID, NAME, CONTINENT");
+        };
     }
 }
