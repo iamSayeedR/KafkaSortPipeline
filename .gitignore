@@ -1,0 +1,14 @@
+# Build outputs
+target/
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Docker build cache
+docker/.buildx/
