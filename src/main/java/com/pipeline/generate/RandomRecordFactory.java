@@ -20,7 +20,7 @@ public class RandomRecordFactory {
 
     /** Characters for address generation: [A-Za-z0-9 ] (space included) */
     private static final String ALPHANUM_SPACE =
-            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 ";
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789    ";
 
     /** Characters for first/last char of address (no space — avoids leading/trailing spaces) */
     private static final String ALPHANUM =

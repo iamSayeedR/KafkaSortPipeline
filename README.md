@@ -121,11 +121,12 @@ values depend on host hardware, disk speed, and container runtime.)*
 (4 partitions). Each record has the format:
 
 ```
-<id>,<name>,<continent>
+<id>,<name>,<address>,<continent>
 ```
 
 - **id**: monotonically increasing integer (shuffled order across partitions)
 - **name**: randomly generated string
+- **address**: randomly generated string
 - **continent**: one of `Africa`, `Asia`, `Australia`, `Europe`, `North America`, `South America`
 
 The generator uses batched Kafka production with zstd compression to maximise
