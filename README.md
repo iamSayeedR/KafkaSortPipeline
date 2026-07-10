@@ -6,6 +6,25 @@ A self-contained Docker pipeline that generates 50 million CSV records into Apac
 
 ---
 
+## Pull from Docker Hub
+
+A pre-built Docker image is available on Docker Hub. You can pull the image and run the pipeline directly:
+
+```bash
+# Pull the latest image
+docker pull sayeedriz/kafkasortpipeline:latest
+
+# Run the full pipeline (50M records, 2 GB RAM, 4 CPUs)
+docker run --rm --memory=2g --cpus=4 sayeedriz/kafkasortpipeline:latest
+
+# Run with fewer records for testing (e.g. 100K records)
+docker run --rm --memory=2g --cpus=4 -e RECORD_COUNT=100000 sayeedriz/kafkasortpipeline:latest
+```
+
+The repository page can be found at [https://hub.docker.com/r/sayeedriz/kafkasortpipeline](https://hub.docker.com/r/sayeedriz/kafkasortpipeline).
+
+---
+
 ## Architecture
 
 ```
@@ -57,16 +76,18 @@ A self-contained Docker pipeline that generates 50 million CSV records into Apac
 
 ## Quick Start
 
+A pre-built image on Docker Hub is the recommended and primary path (see **Pull from Docker Hub** above). Alternatively, you can build and run the image locally using the instructions below.
+
 ### Prerequisites
 
 - Docker Engine ≥ 20.10 (with BuildKit recommended)
 - ~3 GB free disk space for the image + temporary sort runs
 - No ports need to be exposed (everything runs inside the container)
 
-### Build & Run
+### Local Build & Run
 
 ```bash
-# 1. Build the Docker image
+# 1. Build the Docker image locally
 ./docker/scripts/build.sh
 
 # 2. Run the full pipeline (50M records, 2 GB RAM, 4 CPUs)
@@ -79,13 +100,13 @@ A self-contained Docker pipeline that generates 50 million CSV records into Apac
 On Windows (PowerShell):
 
 ```powershell
-# Build
+# Build locally
 docker build -t kafkasortpipeline:latest -f docker/Dockerfile .
 
-# Run (50M records)
+# Run locally (50M records)
 docker run --rm --memory=2g --cpus=4 kafkasortpipeline:latest
 
-# Run (100K records for quick test)
+# Run locally (100K records for quick test)
 docker run --rm --memory=2g --cpus=4 -e RECORD_COUNT=100000 kafkasortpipeline:latest
 ```
 
