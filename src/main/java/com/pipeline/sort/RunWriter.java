@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Phase A of external merge sort — buffer, sort, spill to disk.
@@ -43,11 +44,11 @@ public class RunWriter {
      * @param tempDir         directory to write run files into
      */
     public RunWriter(Comparator<Record> comparator, long bufferSizeBytes, Path tempDir) {
-        this.comparator = java.util.Objects.requireNonNull(comparator, "comparator must not be null");
+        this.comparator = Objects.requireNonNull(comparator, "comparator must not be null");
         if (bufferSizeBytes <= 0) {
             throw new IllegalArgumentException("bufferSizeBytes must be positive");
         }
-        this.tempDir = java.util.Objects.requireNonNull(tempDir, "tempDir must not be null");
+        this.tempDir = Objects.requireNonNull(tempDir, "tempDir must not be null");
         this.bufferSizeBytes = bufferSizeBytes;
     }
 
@@ -59,7 +60,7 @@ public class RunWriter {
      * @param record the record to add
      */
     public void add(Record record) {
-        java.util.Objects.requireNonNull(record, "record must not be null");
+        Objects.requireNonNull(record, "record must not be null");
         buffer.add(record);
         currentBufferBytes += record.estimatedSizeBytes();
         if (currentBufferBytes >= bufferSizeBytes) {

@@ -13,6 +13,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.PriorityQueue;
 import java.util.function.Consumer;
 
@@ -44,11 +45,11 @@ public class RunMerger {
      * @param tempDir    directory for intermediate merge files
      */
     public RunMerger(Comparator<Record> comparator, int maxFanIn, Path tempDir) {
-        this.comparator = java.util.Objects.requireNonNull(comparator, "comparator must not be null");
+        this.comparator = Objects.requireNonNull(comparator, "comparator must not be null");
         if (maxFanIn < 2) {
             throw new IllegalArgumentException("maxFanIn must be at least 2");
         }
-        this.tempDir = java.util.Objects.requireNonNull(tempDir, "tempDir must not be null");
+        this.tempDir = Objects.requireNonNull(tempDir, "tempDir must not be null");
         this.maxFanIn = maxFanIn;
     }
 
@@ -103,17 +104,7 @@ public class RunMerger {
         }
 
         List<BufferedReader> readers = new ArrayList<>(inputs.size());
-        try (AutoCloseable closeAll = () -> {
-            for (BufferedReader reader : readers) {
-                if (reader != null) {
-                    try {
-                        reader.close();
-                    } catch (IOException e) {
-                        System.err.println("Warning: failed to close reader: " + e.getMessage());
-                    }
-                }
-            }
-        }) {
+        try {
             // Open all readers
             for (Path input : inputs) {
                 readers.add(new BufferedReader(
@@ -144,9 +135,19 @@ public class RunMerger {
                     heap.offer(new IndexedRecord(Record.fromCSV(nextLine), min.sourceIndex()));
                 }
             }
-        } catch (Exception e) {
-            if (e instanceof RuntimeException re) throw re;
-            throw new UncheckedIOException("Error during k-way merge", (IOException) e);
+        } catch (IOException e) {
+            throw new UncheckedIOException("Error during k-way merge", e);
+        } finally {
+            // Close all readers
+            for (BufferedReader reader : readers) {
+                if (reader != null) {
+                    try {
+                        reader.close();
+                    } catch (IOException e) {
+                        System.err.println("Warning: failed to close reader: " + e.getMessage());
+                    }
+                }
+            }
         }
     }
 

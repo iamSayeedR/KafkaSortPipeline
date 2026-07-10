@@ -14,6 +14,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Streaming verification application that validates the pipeline output.
@@ -70,7 +71,7 @@ public class VerifyApp {
         boolean countPass = counts.values().stream().distinct().count() == 1;
         String countDetails = counts.entrySet().stream()
                 .map(e -> e.getKey() + "=" + e.getValue())
-                .collect(java.util.stream.Collectors.joining(", "));
+                .collect(Collectors.joining(", "));
         System.out.println("COUNT CHECK: " + countDetails + " — " + (countPass ? "PASS" : "FAIL"));
         if (!countPass) allPassed = false;
 
@@ -93,7 +94,7 @@ public class VerifyApp {
         }
         String integrityDetails = checksums.entrySet().stream()
                 .map(e -> e.getKey() + "=" + e.getValue())
-                .collect(java.util.stream.Collectors.joining(", "));
+                .collect(Collectors.joining(", "));
         System.out.println("INTEGRITY CHECK: " + integrityDetails + " — " + (integrityPass ? "PASS" : "FAIL"));
         if (!integrityPass) allPassed = false;
 

@@ -1,5 +1,7 @@
 package com.pipeline.util;
 
+import java.util.Optional;
+
 /**
  * Minimal utility for reading positional CLI arguments and environment variables.
  * All methods return a default value when the argument is missing or unparseable.
@@ -18,10 +20,9 @@ public final class Args {
      * @return the argument or default
      */
     public static String get(String[] args, int index, String defaultValue) {
-        if (args != null && index >= 0 && index < args.length && args[index] != null) {
-            return args[index];
-        }
-        return defaultValue;
+        return (args != null && index >= 0 && index < args.length && args[index] != null)
+                ? args[index]
+                : defaultValue;
     }
 
     /**
@@ -35,7 +36,9 @@ public final class Args {
      */
     public static int getInt(String[] args, int index, int defaultValue) {
         String raw = get(args, index, null);
-        if (raw == null) return defaultValue;
+        if (raw == null) {
+            return defaultValue;
+        }
         try {
             return Integer.parseInt(raw.strip());
         } catch (NumberFormatException e) {
@@ -54,7 +57,9 @@ public final class Args {
      */
     public static long getLong(String[] args, int index, long defaultValue) {
         String raw = get(args, index, null);
-        if (raw == null) return defaultValue;
+        if (raw == null) {
+            return defaultValue;
+        }
         try {
             return Long.parseLong(raw.strip());
         } catch (NumberFormatException e) {
@@ -71,10 +76,8 @@ public final class Args {
      * @return the env value or default
      */
     public static String env(String name, String defaultValue) {
-        String value = System.getenv(name);
-        if (value == null || value.isBlank()) {
-            return defaultValue;
-        }
-        return value;
+        return Optional.ofNullable(System.getenv(name))
+                .filter(val -> !val.isBlank())
+                .orElse(defaultValue);
     }
 }

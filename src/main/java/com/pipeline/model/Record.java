@@ -1,5 +1,7 @@
 package com.pipeline.model;
 
+import java.util.Objects;
+
 /**
  * Immutable data record representing a single row in the pipeline.
  * Uses a Java record for compact, value-semantic representation.
@@ -10,9 +12,9 @@ public record Record(int id, String name, String address, String continent) {
      * Compact constructor — validates that no field is null.
      */
     public Record {
-        java.util.Objects.requireNonNull(name, "name must not be null");
-        java.util.Objects.requireNonNull(address, "address must not be null");
-        java.util.Objects.requireNonNull(continent, "continent must not be null");
+        Objects.requireNonNull(name, "name must not be null");
+        Objects.requireNonNull(address, "address must not be null");
+        Objects.requireNonNull(continent, "continent must not be null");
     }
 
     /**
